@@ -13,7 +13,7 @@ public class PostgresExampleApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PostgresExampleApplication.class, args);
-	//	PostgresTest.writesToDb();
+	//	PostgresTest.verifyCompleteWrite();
 		PostgresTest.blockWrite();
 
 	}
@@ -34,14 +34,11 @@ public class PostgresExampleApplication {
 
             Mono<Connection> connectionMono = Mono.from(connectionFactory.create());
 
-            //Doesn't create a table:
             connectionMono.flatMapMany(connection ->
                     connection.createStatement("CREATE TABLE person ( id SERIAL PRIMARY KEY, firstname VARCHAR(100) NOT NULL, lastname VARCHAR(100) NOT NULL);")
                             .execute())
                     .blockFirst();
 
-            //Result:
-            //Nothing is written to console (Process finished with exit code 0) and postgres db is unchanged
              connectionMono.flatMapMany(connection -> connection
 					    .createStatement("INSERT INTO person (id, firstname, lastname) VALUES ($1, $2, $3)")
 						.bind("$1", 1)
@@ -50,8 +47,6 @@ public class PostgresExampleApplication {
 						.execute())
 					.blockFirst();
 
-            //Result:
-            //Nothing is written to console (Process finished with exit code 0) and postgres db is unchanged
 
         }
 
@@ -59,7 +54,7 @@ public class PostgresExampleApplication {
 
             Mono<Connection> connectionMono = Mono.from(connectionFactory.create());
 
-			//Result: creates the table as expected
+			//Result: creates the table
             connectionMono.flatMapMany(connection ->
                     connection.createStatement("CREATE TABLE person ( id SERIAL PRIMARY KEY, firstname VARCHAR(100) NOT NULL, lastname VARCHAR(100) NOT NULL);")
                             .execute())
@@ -67,7 +62,7 @@ public class PostgresExampleApplication {
                     .expectNextCount(1) //
                     .verifyComplete();
 
-			//Result: Inserts as expected
+			//Result: Inserts
 			connectionMono.flatMapMany(connection -> connection
                     .createStatement("INSERT INTO person (id, firstname, lastname) VALUES ($1, $2, $3)")
                     .bind("$1", 1)
